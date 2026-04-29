@@ -1,1 +1,8 @@
-[]
+[
+  {
+    "id": 1,
+    "id_paciente": 1,
+    "tipo": "emergencia",
+    "nome_medico": "Dra. Ana"
+  }
+]

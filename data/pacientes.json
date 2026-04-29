@@ -1,8 +1,8 @@
 [
-  {
-    "id": 1,
-    "cpf": "984.454.723-00",
-    "nome": "Leonardo Silva",
-    "telefone": "90023-9349"
-  }
+    {
+        "id": 1,
+        "cpf": "984.454.723-00",
+        "nome": "Leonardo Silva",
+        "telefone": "90023-9349"
+    }
 ]
