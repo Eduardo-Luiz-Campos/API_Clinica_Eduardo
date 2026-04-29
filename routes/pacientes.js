@@ -54,7 +54,8 @@ router.post('/', (req, res) => {
         id: pacientes.length > 0 ? pacientes[pacientes.length - 1].id + 1 : 1 ,
         nome,
         cpf,
-        telefone
+        telefone,
+        idade
     };
 
     pacientes.push(novoPaciente);

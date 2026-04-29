@@ -2,7 +2,13 @@
   {
     "id": 1,
     "id_paciente": 1,
-    "tipo": "emergencia",
+    "tipo": "Emergência",
     "nome_medico": "Dra. Ana"
+  },
+  {
+    "id": 2,
+    "id_paciente": "2",
+    "tipo": "Geral",
+    "nome_medico": "Dr. Mario"
   }
 ]

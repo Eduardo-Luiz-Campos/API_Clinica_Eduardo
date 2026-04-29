@@ -2,20 +2,23 @@
 const API_PACIENTES = '/pacientes';
 const API_CONSULTAS = '/consultas';
 
-// Ao carregar a página, busca os dados
+// Inicia o sistema ao carregar a página
 document.addEventListener('DOMContentLoaded', () => {
     atualizarTelas();
 });
 
-// Função principal para atualizar as listas e o select
+// Função mestre para atualizar os dados na tela
 async function atualizarTelas() {
     await listarPacientes();
     await listarConsultas();
     await carregarPacientesNoSelect();
 }
 
-// __________________________________________ LÓGICA DE PACIENTES __________________________________________________
+// =========================================================================
+// SEÇÃO DE PACIENTES
+// =========================================================================
 
+// Listar Pacientes
 async function listarPacientes() {
     const res = await fetch(API_PACIENTES);
     const pacientes = await res.json();
@@ -25,12 +28,16 @@ async function listarPacientes() {
     pacientes.forEach(p => {
         lista.innerHTML += `
             <li>
-                <strong>${p.nome}</strong> (CPF: ${p.cpf}) - ${p.idade} anos
-                <button class="btn-delete" onclick="deletarPaciente(${p.id})">Excluir</button>
+                <span><strong>${p.nome}</strong> (${p.idade} anos) - CPF: ${p.cpf}</span>
+                <div>
+                    <button class="btn-edit" onclick="editarPaciente(${p.id})">Editar</button>
+                    <button class="btn-delete" onclick="deletarPaciente(${p.id})">Excluir</button>
+                </div>
             </li>`;
     });
 }
 
+// Cadastrar Paciente
 document.getElementById('formPaciente').addEventListener('submit', async (e) => {
     e.preventDefault();
     const dados = {
@@ -47,29 +54,52 @@ document.getElementById('formPaciente').addEventListener('submit', async (e) => 
     });
 
     if (res.ok) {
-        alert('Paciente cadastrado!');
+        alert('Paciente cadastrado com sucesso!');
         e.target.reset();
         atualizarTelas();
     }
 });
 
+// Editar Paciente (PUT)
+async function editarPaciente(id) {
+    const res = await fetch(`${API_PACIENTES}/${id}`);
+    const p = await res.json();
+
+    const novoNome = prompt("Editar Nome:", p.nome);
+    const novoCpf = prompt("Editar CPF:", p.cpf);
+    const novaIdade = prompt("Editar Idade:", p.idade);
+    const novoTel = prompt("Editar Telefone:", p.telefone);
+
+    if (novoNome && novoCpf) {
+        await fetch(`${API_PACIENTES}/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nome: novoNome, cpf: novoCpf, idade: novaIdade, telefone: novoTel })
+        });
+        alert('Dados do paciente atualizados!');
+        atualizarTelas();
+    }
+}
+
+// Deletar Paciente
 async function deletarPaciente(id) {
-    if (confirm('Deseja excluir este paciente?')) {
+    if (confirm('Deseja realmente excluir este paciente?')) {
         await fetch(`${API_PACIENTES}/${id}`, { method: 'DELETE' });
         atualizarTelas();
     }
 }
 
-// --- LÓGICA DE CONSULTAS (RELACIONAMENTO) ---
+// =========================================================================
+// SEÇÃO DE CONSULTAS (RELACIONAMENTO)
+// =========================================================================
 
+// Carrega os nomes dos pacientes no Select do formulário de consultas
 async function carregarPacientesNoSelect() {
     const res = await fetch(API_PACIENTES);
     const pacientes = await res.json();
     const select = document.getElementById('id_paciente');
     
-    // Mantém a opção padrão e limpa o resto
     select.innerHTML = '<option value="">Selecione o Paciente</option>';
-    
     pacientes.forEach(p => {
         const option = document.createElement('option');
         option.value = p.id;
@@ -78,10 +108,10 @@ async function carregarPacientesNoSelect() {
     });
 }
 
+// Listar Consultas
 async function listarConsultas() {
     const resConsultas = await fetch(API_CONSULTAS);
     const consultas = await resConsultas.json();
-    
     const resPacientes = await fetch(API_PACIENTES);
     const pacientes = await resPacientes.json();
 
@@ -89,19 +119,21 @@ async function listarConsultas() {
     lista.innerHTML = '';
 
     consultas.forEach(c => {
-        // Busca o nome do paciente pelo ID para exibir na tela
         const paciente = pacientes.find(p => p.id == c.id_paciente);
-        const nomePaciente = paciente ? paciente.nome : "Paciente não encontrado";
+        const nomePaciente = paciente ? paciente.nome : "Desconhecido";
 
         lista.innerHTML += `
             <li>
-                <strong>Consulta: ${c.tipo}</strong><br>
-                Paciente: ${nomePaciente} | Médico: ${c.nome_medico}
-                <button class="btn-delete" onclick="deletarConsulta(${c.id})">Cancelar</button>
+                <span><strong>${c.tipo}</strong> com Dr(a). ${c.nome_medico} (Paciente: ${nomePaciente})</span>
+                <div>
+                    <button class="btn-edit" onclick="editarConsulta(${c.id})">Editar</button>
+                    <button class="btn-delete" onclick="deletarConsulta(${c.id})">Cancelar</button>
+                </div>
             </li>`;
     });
 }
 
+// Agendar Consulta
 document.getElementById('formConsulta').addEventListener('submit', async (e) => {
     e.preventDefault();
     const dados = {
@@ -123,6 +155,30 @@ document.getElementById('formConsulta').addEventListener('submit', async (e) => 
     }
 });
 
+// Editar Consulta (PUT)
+async function editarConsulta(id) {
+    const res = await fetch(`${API_CONSULTAS}/${id}`);
+    const c = await res.json();
+
+    const novoTipo = prompt("Editar Tipo de Consulta:", c.tipo);
+    const novoMedico = prompt("Editar Nome do Médico:", c.nome_medico);
+
+    if (novoTipo && novoMedico) {
+        await fetch(`${API_CONSULTAS}/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                id_paciente: c.id_paciente, // Mantém o vínculo com o mesmo paciente
+                tipo: novoTipo, 
+                nome_medico: novoMedico 
+            })
+        });
+        alert('Consulta atualizada!');
+        atualizarTelas();
+    }
+}
+
+// Deletar Consulta
 async function deletarConsulta(id) {
     if (confirm('Deseja cancelar esta consulta?')) {
         await fetch(`${API_CONSULTAS}/${id}`, { method: 'DELETE' });
